@@ -18,4 +18,6 @@ public interface FavoritesRepository extends JpaRepository<Favorites, Long> {
     @Modifying
     @Transactional
     void deleteByUserAndFavorite(User user, User favorite);
+    Favorites findByUserAndFavorite(User user, User favorite);
+
 }

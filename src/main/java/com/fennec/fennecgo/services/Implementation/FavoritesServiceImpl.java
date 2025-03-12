@@ -29,7 +29,21 @@ public class FavoritesServiceImpl implements FavoritesService {
         // Load the user to be favorited
         User favoriteUser = userRepository.findById(request.getFavoriteId())
             .orElseThrow(() -> new RuntimeException("User not found with id: " + request.getFavoriteId()));
-        
+
+        // Optional: Prevent a user from favoriting themselves
+        if (user.equals(favoriteUser)) {
+            throw new RuntimeException("You cannot favorite yourself.");
+        }
+
+        // Check if a favorite record already exists for this user/favorite pair
+        Favorites existingFavorite = favoritesRepository.findByUserAndFavorite(user, favoriteUser);
+        if (existingFavorite != null) {
+            // Here you can decide what to do. For example:
+            // 1) Throw an exception
+            // 2) Return a response indicating it's already favorited
+            throw new RuntimeException("Favorite already exists for this user.");
+        }
+
         // Create a new favorite record
         Favorites fav = new Favorites();
         fav.setUser(user);
@@ -43,6 +57,7 @@ public class FavoritesServiceImpl implements FavoritesService {
         response.setFavoriteEmail(favoriteUser.getEmail());
         return response;
     }
+
 
     @Override
     public void removeFavorite(Long userId, Long favoriteId) {
