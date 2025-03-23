@@ -2,42 +2,34 @@ package com.fennec.fennecgo.models;
 
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Entity
-@Table(name = "fee_rule")
+@Table(name = "fee_rules")
 public class FeeRule {
-	@Id
+
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
-    // FeeRule is associated with a TransactionType
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "transaction_type_id", nullable = false)
     private TransactionType transactionType;
-    
-    @Column(name = "min_amount")
+
     private BigDecimal minAmount;
-    
-    @Column(name = "max_amount")
     private BigDecimal maxAmount;
-    
-    @Column(name = "fixed_fee")
     private BigDecimal fixedFee;
-    
-    @Column(name = "percentage_fee")
-    private BigDecimal percentageFee; // e.g., 0.015 for 1.5%
-    
-    @Column(name = "start_date")
+    private BigDecimal percentageFee;
     private LocalDateTime startDate;
-    
-    @Column(name = "end_date")
     private LocalDateTime endDate;
-    
-    @Column(name = "is_active")
-    private Boolean isActive;
+
+    // Set default value in Java code
+    @Column(name = "active", nullable = false)
+    private boolean active = false;
 }
