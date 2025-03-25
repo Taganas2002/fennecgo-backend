@@ -3,6 +3,7 @@ package com.fennec.fennecgo.models;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Data
@@ -26,10 +27,22 @@ public class MoneyRequest {
     @JoinColumn(name = "to_wallet_id", nullable = false)
     private Wallet toWalletID;
     
+    private String ReferenceNumber;
     private BigDecimal amount;
     private String note;
     private String status;
     
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date createdAt = new Date();
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    
+    @PrePersist
+    public void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = this.createdAt;
+    }
+
+    @PreUpdate
+    public void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 }

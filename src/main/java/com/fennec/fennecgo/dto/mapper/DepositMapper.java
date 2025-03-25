@@ -1,8 +1,9 @@
 package com.fennec.fennecgo.dto.mapper;
 
 import com.fennec.fennecgo.dto.response.DepositResponse;
-import com.fennec.fennecgo.models.Transaction;
+
 import org.springframework.stereotype.Component;
+import com.fennec.fennecgo.models.Transaction;
 
 import java.math.BigDecimal;
 
