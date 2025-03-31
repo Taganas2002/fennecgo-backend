@@ -9,5 +9,7 @@ public interface UserService {
     List<UserResponse> getAllUsers();
     UserResponse getUserById(Long id);
     UserResponse updateUser(Long id, UserRequest userRequest);
+    UserResponse setDefaultProfilePhoto(Long id, String defaultPhotoUrl);
     void deleteUser(Long id);
+    
 }
