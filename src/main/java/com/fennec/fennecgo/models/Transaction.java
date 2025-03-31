@@ -31,6 +31,7 @@ public class Transaction {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "to_wallet_id")
+    
     private Wallet toWallet;
     
     @ManyToOne(fetch = FetchType.LAZY)
@@ -38,8 +39,8 @@ public class Transaction {
     private PaymentMethod paymentMethod;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "biller_id")
-    private Biller biller;
+    @JoinColumn(name = "service_provider_id")
+    private ServiceProvider serviceProvider;
 
     // Transaction fields
     private BigDecimal amount;

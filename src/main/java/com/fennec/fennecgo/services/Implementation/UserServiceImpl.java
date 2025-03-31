@@ -48,11 +48,28 @@ public class UserServiceImpl implements UserService {
         LOGGER.info("Updating user with id: {}", id);
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User with id " + id + " not found"));
+        
+        // Update required fields via the mapper (e.g., username, email)
         userMapper.updateUserFromRequest(userRequest, user);
+        
+        // Update optional profile photo if provided and not empty
+        if (userRequest.getProfilePhoto() != null && !userRequest.getProfilePhoto().trim().isEmpty()) {
+            user.setProfilePhoto(userRequest.getProfilePhoto());
+            LOGGER.info("Updated profilePhoto: {}", userRequest.getProfilePhoto());
+        }
+        
+        // Update optional gender if provided and not empty
+        if (userRequest.getGender() != null && !userRequest.getGender().trim().isEmpty()) {
+            user.setGender(userRequest.getGender());
+            LOGGER.info("Updated gender: {}", userRequest.getGender());
+        }
+        
         User updatedUser = userRepository.save(user);
         LOGGER.info("User with id {} updated successfully", id);
         return userMapper.toUserResponse(updatedUser);
     }
+
+
 
     @Override
     public void deleteUser(Long id) {

@@ -5,20 +5,18 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
-public class WalletTransferResponse {
+public class TransferInitiationResponse {
     private Long transactionId;
     private String referenceNumber;
     private BigDecimal amount;
     private BigDecimal fee;
     private BigDecimal totalCharge;
-    private String status;            // e.g. "SUCCESS"
-    private String paymentMethod;     // "WALLET"
+    private String paymentMethod;  // e.g. "WALLET"
+    private String status;         // "PENDING"
     private LocalDateTime createdAt;
-    // Sender information (from the current user)
-    private String senderUsername;
-    private String senderPhone;
-    private String senderEmail;
-    
-    // The note or description provided with the transfer
+
+    // Optional: If you want to show note/description or sender info
     private String description;
+    private String senderUsername;
+    private String senderEmail;
 }

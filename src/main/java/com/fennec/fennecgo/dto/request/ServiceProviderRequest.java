@@ -1,13 +1,12 @@
-package com.fennec.fennecgo.dto.response;
+package com.fennec.fennecgo.dto.request;
 
 import lombok.Data;
 
 @Data
-public class BillerResponse {
-    private Long id;
+public class ServiceProviderRequest {
     private String externalCode;
     private String name;
-    private String category;
+    private Long category;
     private String logoUrl;
     private String description;
 }

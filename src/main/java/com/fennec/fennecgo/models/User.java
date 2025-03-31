@@ -43,7 +43,14 @@ public class User {
              inverseJoinColumns = @JoinColumn(name = "role_id"))
   private Set<Role> roles = new HashSet<>();
 
-  // ✅ Default Constructor
+//This field can store a URL to the profile photo.
+ @Column(name = "profile_photo", nullable = true)
+ private String profilePhoto;
+
+ // Optional gender field (could also be an enum for better type safety)
+ @Column(name = "gender", nullable = true)
+ private String gender;
+ 
   public User() {}
 
   // ✅ Constructor with Phone
@@ -103,4 +110,20 @@ public class User {
   public void setRoles(Set<Role> roles) {
     this.roles = roles;
   }
+  
+  public String getProfilePhoto() {
+	    return profilePhoto;
+	  }
+
+  public void setProfilePhoto(String profilePhoto) {
+	    this.profilePhoto = profilePhoto;
+	  }
+
+	  public String getGender() {
+	    return gender;
+	  }
+
+	  public void setGender(String gender) {
+	    this.gender = gender;
+	  }
 }

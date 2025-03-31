@@ -8,4 +8,6 @@ public class UserResponse {
     private String username;
     private String phone;
     private String email;
+    private String profilePhoto;
+    private String gender;
 }
