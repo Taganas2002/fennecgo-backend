@@ -1,28 +1,27 @@
 package com.fennec.fennecgo.models;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "users", 
     uniqueConstraints = { 
       @UniqueConstraint(columnNames = "email"),
-      @UniqueConstraint(columnNames = "phone") // ✅ Only phone is unique now
+      @UniqueConstraint(columnNames = "phone")
     })
 public class User {
-  
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
   @NotBlank
   @Size(max = 20)
-  private String username; // ❌ Removed unique constraint here
+  private String username;
 
   @NotBlank
   @Size(max = 50)
@@ -31,7 +30,7 @@ public class User {
 
   @NotBlank
   @Size(max = 20)
-  private String phone;  // ✅ Unique phone field
+  private String phone;
 
   @NotBlank
   @Size(max = 120)
@@ -43,17 +42,26 @@ public class User {
              inverseJoinColumns = @JoinColumn(name = "role_id"))
   private Set<Role> roles = new HashSet<>();
 
-//This field can store a URL to the profile photo.
- @Column(name = "profile_photo", nullable = true)
- private String profilePhoto;
+  // URL to the profile photo
+  @Column(name = "profile_photo", nullable = true)
+  private String profilePhoto;
 
- // Optional gender field (could also be an enum for better type safety)
- @Column(name = "gender", nullable = true)
- private String gender;
- 
+  // Optional gender field
+  @Column(name = "gender", nullable = true)
+  private String gender;
+  
+  // New: PIN field (hashed)
+  @Column(name = "pin", nullable = true)
+  private String pin;
+
+  // New: Failed PIN attempts counter
+  @Column(name = "failed_pin_attempts", nullable = false)
+  private int failedPinAttempts = 0;
+
+  // Default constructor
   public User() {}
 
-  // ✅ Constructor with Phone
+  // Constructor with required fields
   public User(String username, String email, String phone, String password) {
     this.username = username;
     this.email = email;
@@ -61,69 +69,65 @@ public class User {
     this.password = password;
   }
 
-  // ✅ Getters & Setters
-
+  // Getters & Setters (including for new fields)
   public Long getId() {
     return id;
   }
-
   public void setId(Long id) {
     this.id = id;
   }
-
   public String getUsername() {
     return username;
   }
-
   public void setUsername(String username) {
     this.username = username;
   }
-
   public String getEmail() {
     return email;
   }
-
   public void setEmail(String email) {
     this.email = email;
   }
-
   public String getPhone() {
     return phone;
   }
-
   public void setPhone(String phone) {
     this.phone = phone;
   }
-
   public String getPassword() {
     return password;
   }
-
   public void setPassword(String password) {
     this.password = password;
   }
-
   public Set<Role> getRoles() {
     return roles;
   }
-
   public void setRoles(Set<Role> roles) {
     this.roles = roles;
   }
-  
   public String getProfilePhoto() {
-	    return profilePhoto;
-	  }
-
+    return profilePhoto;
+  }
   public void setProfilePhoto(String profilePhoto) {
-	    this.profilePhoto = profilePhoto;
-	  }
-
-	  public String getGender() {
-	    return gender;
-	  }
-
-	  public void setGender(String gender) {
-	    this.gender = gender;
-	  }
+    this.profilePhoto = profilePhoto;
+  }
+  public String getGender() {
+    return gender;
+  }
+  public void setGender(String gender) {
+    this.gender = gender;
+  }
+  public String getPin() {
+    return pin;
+  }
+  public void setPin(String pin) {
+    this.pin = pin;
+  }
+  public int getFailedPinAttempts() {
+    return failedPinAttempts;
+  }
+  public void setFailedPinAttempts(int failedPinAttempts) {
+    this.failedPinAttempts = failedPinAttempts;
+  }
 }
