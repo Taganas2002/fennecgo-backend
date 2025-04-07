@@ -28,6 +28,7 @@ public class UserMapper {
         response.setEmail(user.getEmail());
         response.setGender(user.getGender());
         response.setProfilePhoto(user.getProfilePhoto());
+        response.setPin(user.getPin());
         return response;
     }
     

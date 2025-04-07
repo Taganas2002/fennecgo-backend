@@ -3,12 +3,16 @@ package com.fennec.fennecgo.services.Implementation;
 import com.fennec.fennecgo.models.User;
 import com.fennec.fennecgo.repository.UserRepository;
 import com.fennec.fennecgo.services.Interface.PinService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class PinServiceImpl implements PinService {
 
+    private static final Logger logger = LoggerFactory.getLogger(PinServiceImpl.class);
+    
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -22,6 +26,7 @@ public class PinServiceImpl implements PinService {
         user.setPin(passwordEncoder.encode(rawPin));
         user.setFailedPinAttempts(0);
         userRepository.save(user);
+        logger.info("PIN set for user with ID: {}", user.getId());
     }
 
     @Override
@@ -30,6 +35,9 @@ public class PinServiceImpl implements PinService {
         if (matches) {
             user.setFailedPinAttempts(0);
             userRepository.save(user);
+            logger.info("User with ID: {} successfully verified PIN", user.getId());
+        } else {
+            logger.warn("Failed PIN verification attempt for user with ID: {}", user.getId());
         }
         return matches;
     }
@@ -39,6 +47,7 @@ public class PinServiceImpl implements PinService {
         int attempts = user.getFailedPinAttempts() + 1;
         user.setFailedPinAttempts(attempts);
         userRepository.save(user);
+        logger.warn("Incremented failed PIN attempts for user with ID: {} to {}", user.getId(), attempts);
         return attempts;
     }
 
@@ -48,9 +57,11 @@ public class PinServiceImpl implements PinService {
             user.setPin(passwordEncoder.encode(newPin));
             user.setFailedPinAttempts(0);
             userRepository.save(user);
+            logger.info("User with ID: {} successfully changed PIN", user.getId());
             return true;
         } else {
-            incrementFailedAttempts(user);
+            int attempts = incrementFailedAttempts(user);
+            logger.warn("User with ID: {} failed to change PIN. Current failed attempt count: {}", user.getId(), attempts);
             return false;
         }
     }

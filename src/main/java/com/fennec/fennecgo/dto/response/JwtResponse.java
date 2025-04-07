@@ -9,6 +9,7 @@ public class JwtResponse {
   private String username;
   private String email;
   private String phone;  // ✅ Added phone field
+  private String pin;
   private List<String> roles;
 
   // ✅ Updated Constructor to include phone
@@ -18,6 +19,7 @@ public class JwtResponse {
     this.username = username;
     this.email = email;
     this.phone = phone;
+    this.pin= pin;
     this.roles = roles;
   }
 
@@ -68,6 +70,14 @@ public class JwtResponse {
 
   public void setPhone(String phone) {
     this.phone = phone;
+  }
+  
+  public String getPin() {
+	    return pin;
+  }
+  
+  public void setPin(String pin) {
+	    this.pin = pin;
   }
 
   public List<String> getRoles() {

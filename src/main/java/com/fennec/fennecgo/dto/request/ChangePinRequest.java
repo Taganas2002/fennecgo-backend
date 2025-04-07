@@ -6,6 +6,4 @@ import lombok.Data;
 public class ChangePinRequest {
     private String currentPin;
     private String newPin;
-
-   
 }

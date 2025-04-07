@@ -10,4 +10,5 @@ public class UserResponse {
     private String email;
     private String profilePhoto;
     private String gender;
+    private String pin;
 }
