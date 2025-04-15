@@ -16,7 +16,6 @@ public class MoneyRequestController {
 
     private final MoneyRequestService moneyRequestService;
 
-    // Create a money request (requestor's ID is derived from security context)
     @PostMapping("/create")
     public ResponseEntity<MoneyRequestResponse> createMoneyRequest(@RequestBody MoneyRequestRequest request) {
         MoneyRequestResponse response = moneyRequestService.createMoneyRequest(request);
@@ -29,35 +28,34 @@ public class MoneyRequestController {
         return ResponseEntity.ok(response);
     }
 
-    // Get all money requests for the current user (as either requestor or payer)
     @GetMapping
     public ResponseEntity<List<MoneyRequestResponse>> getMyMoneyRequests() {
         List<MoneyRequestResponse> responses = moneyRequestService.getRequestsForUser();
         return ResponseEntity.ok(responses);
     }
 
-    // Get money requests where the current user is the payer
     @GetMapping("/payer")
     public ResponseEntity<List<MoneyRequestResponse>> getMoneyRequestsForPayer() {
         List<MoneyRequestResponse> responses = moneyRequestService.getRequestsForPayer();
         return ResponseEntity.ok(responses);
     }
 
-    @PatchMapping("/cancel/{requestId}")
-    public ResponseEntity<Void> cancelMoneyRequest(@PathVariable Long requestId) {
-        moneyRequestService.cancelMoneyRequest(requestId);
-        return ResponseEntity.noContent().build();
-    }
-
-    @PatchMapping("/confirm/{requestId}")
-    public ResponseEntity<MoneyRequestResponse> confirmMoneyRequest(@PathVariable Long requestId) {
-        MoneyRequestResponse response = moneyRequestService.confirmMoneyRequest(requestId);
+    // Updated endpoints to use referenceNumber as path variable.
+    @PatchMapping("/cancel/{referenceNumber}")
+    public ResponseEntity<MoneyRequestResponse> cancelMoneyRequest(@PathVariable String referenceNumber) {
+        MoneyRequestResponse response = moneyRequestService.cancelMoneyRequest(referenceNumber);
         return ResponseEntity.ok(response);
     }
 
-    @PatchMapping("/decline/{requestId}")
-    public ResponseEntity<MoneyRequestResponse> declineMoneyRequest(@PathVariable Long requestId) {
-        MoneyRequestResponse response = moneyRequestService.declineMoneyRequest(requestId);
+    @PatchMapping("/confirm/{referenceNumber}")
+    public ResponseEntity<MoneyRequestResponse> confirmMoneyRequest(@PathVariable String referenceNumber) {
+        MoneyRequestResponse response = moneyRequestService.confirmMoneyRequest(referenceNumber);
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/decline/{referenceNumber}")
+    public ResponseEntity<MoneyRequestResponse> declineMoneyRequest(@PathVariable String referenceNumber) {
+        MoneyRequestResponse response = moneyRequestService.declineMoneyRequest(referenceNumber);
         return ResponseEntity.ok(response);
     }
 }

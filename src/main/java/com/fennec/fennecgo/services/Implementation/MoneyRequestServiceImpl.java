@@ -21,6 +21,8 @@ import com.fennec.fennecgo.repository.PaymentMethodRepository;
 import com.fennec.fennecgo.security.services.UserDetailsImpl;
 import com.fennec.fennecgo.services.Interface.MoneyRequestService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +36,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MoneyRequestServiceImpl implements MoneyRequestService {
 
+    private static final Logger log = LoggerFactory.getLogger(MoneyRequestServiceImpl.class);
+
     private final MoneyRequestRepository moneyRequestRepository;
     private final TransactionRepository transactionRepository;
     private final TransactionTypeRepository transactionTypeRepository;
@@ -44,30 +48,25 @@ public class MoneyRequestServiceImpl implements MoneyRequestService {
 
     @Override
     public MoneyRequestResponse createMoneyRequest(MoneyRequestRequest request) {
-        // 1) Get the requestor's user ID from the security context
         Long requestorUserId = getCurrentUserId();
-
-        // 2) Fetch the requestor's default wallet
         User requestorUser = userRepository.findById(requestorUserId)
             .orElseThrow(() -> new ResourceNotFoundException("Requestor not found with id: " + requestorUserId));
         Wallet requestorWallet = walletRepository.findDefaultWalletByUserId(requestorUser.getId())
             .orElseThrow(() -> new ResourceNotFoundException("Requestor's default wallet not found"));
 
-        // 3) Fetch the payer's default wallet using the payerUserId from the request
         User payerUser = userRepository.findById(request.getPayerUserId())
             .orElseThrow(() -> new ResourceNotFoundException("Payer not found with id: " + request.getPayerUserId()));
         Wallet payerWallet = walletRepository.findDefaultWalletByUserId(payerUser.getId())
             .orElseThrow(() -> new ResourceNotFoundException("Payer's default wallet not found"));
 
-        // 4) Build MoneyRequest entity using the mapper
         MoneyRequest moneyRequest = moneyRequestMapper.toMoneyRequest(request);
-        // Set wallet associations
         moneyRequest.setFromWalletID(payerWallet);
         moneyRequest.setToWalletID(requestorWallet);
         moneyRequest.setStatus("PENDING");
         moneyRequest.setReferenceNumber("MR_" + UUID.randomUUID());
 
         MoneyRequest savedRequest = moneyRequestRepository.save(moneyRequest);
+        log.info("Created MoneyRequest with reference {}", savedRequest.getReferenceNumber());
         return moneyRequestMapper.toMoneyRequestResponse(savedRequest);
     }
 
@@ -103,27 +102,31 @@ public class MoneyRequestServiceImpl implements MoneyRequestService {
                 .collect(Collectors.toList());
     }
 
+    // Updated cancel method to set status to "CANCELED" and return the updated response.
     @Override
-    public void cancelMoneyRequest(Long requestId) {
-        MoneyRequest moneyRequest = moneyRequestRepository.findById(requestId)
-            .orElseThrow(() -> new ResourceNotFoundException("MoneyRequest not found with id " + requestId));
-        // Only allow cancellation if current user is the requestor (owner of toWallet)
+    public MoneyRequestResponse cancelMoneyRequest(String referenceNumber) {
+        MoneyRequest moneyRequest = moneyRequestRepository.findByReferenceNumber(referenceNumber)
+            .orElseThrow(() -> new ResourceNotFoundException("MoneyRequest not found with reference " + referenceNumber));
         Long currentUserId = getCurrentUserId();
         if (!moneyRequest.getToWalletID().getUser().getId().equals(currentUserId)) {
             throw new SecurityException("You are not authorized to cancel this money request");
         }
-        moneyRequest.setStatus("CANCELLED");
-        moneyRequestRepository.save(moneyRequest);
+        if (!"PENDING".equalsIgnoreCase(moneyRequest.getStatus())) {
+            throw new IllegalStateException("Only PENDING requests can be cancelled");
+        }
+        moneyRequest.setStatus("CANCELED");
+        MoneyRequest updatedRequest = moneyRequestRepository.save(moneyRequest);
+        log.info("Money request {} cancelled by user {}", referenceNumber, currentUserId);
+        return moneyRequestMapper.toMoneyRequestResponse(updatedRequest);
     }
 
     @Override
-    public MoneyRequestResponse confirmMoneyRequest(Long requestId) {
-        MoneyRequest moneyRequest = moneyRequestRepository.findById(requestId)
-            .orElseThrow(() -> new ResourceNotFoundException("MoneyRequest not found with id " + requestId));
+    public MoneyRequestResponse confirmMoneyRequest(String referenceNumber) {
+        MoneyRequest moneyRequest = moneyRequestRepository.findByReferenceNumber(referenceNumber)
+            .orElseThrow(() -> new ResourceNotFoundException("MoneyRequest not found with reference " + referenceNumber));
         if (!"PENDING".equalsIgnoreCase(moneyRequest.getStatus())) {
             throw new IllegalStateException("Only PENDING requests can be confirmed");
         }
-        // Only allow confirmation if current user is the payer (owner of fromWallet)
         Long currentUserId = getCurrentUserId();
         if (!moneyRequest.getFromWalletID().getUser().getId().equals(currentUserId)) {
             throw new SecurityException("You are not authorized to confirm this money request");
@@ -137,7 +140,6 @@ public class MoneyRequestServiceImpl implements MoneyRequestService {
             throw new InsufficientBalanceException("Payer does not have sufficient funds");
         }
 
-        // Deduct funds from payer and credit requestor.
         payerWallet.setBalance(payerWallet.getBalance().subtract(amount));
         walletRepository.save(payerWallet);
 
@@ -147,7 +149,6 @@ public class MoneyRequestServiceImpl implements MoneyRequestService {
         moneyRequest.setStatus("PAID");
         moneyRequestRepository.save(moneyRequest);
 
-        // Create an audit Transaction record with type "MONEY_REQUEST_TRANSFER"
         TransactionType auditType = transactionTypeRepository.findByCode("MONEY_REQUEST_TRANSFER")
         	    .orElseThrow(() -> new ResourceNotFoundException("TransactionType 'MONEY_REQUEST_TRANSFER' not found"));
         PaymentMethod pm = paymentMethodRepository.findByTypeIgnoreCase("WALLET")
@@ -165,27 +166,27 @@ public class MoneyRequestServiceImpl implements MoneyRequestService {
         auditTransaction.setDescription("Audit record for Money Request: " + moneyRequest.getReferenceNumber());
         transactionRepository.save(auditTransaction);
 
+        log.info("Money request {} confirmed by user {}", referenceNumber, currentUserId);
         return moneyRequestMapper.toMoneyRequestResponse(moneyRequest);
     }
 
     @Override
-    public MoneyRequestResponse declineMoneyRequest(Long requestId) {
-        MoneyRequest moneyRequest = moneyRequestRepository.findById(requestId)
-            .orElseThrow(() -> new ResourceNotFoundException("MoneyRequest not found with id " + requestId));
+    public MoneyRequestResponse declineMoneyRequest(String referenceNumber) {
+        MoneyRequest moneyRequest = moneyRequestRepository.findByReferenceNumber(referenceNumber)
+            .orElseThrow(() -> new ResourceNotFoundException("MoneyRequest not found with reference " + referenceNumber));
         if (!"PENDING".equalsIgnoreCase(moneyRequest.getStatus())) {
             throw new IllegalStateException("Only PENDING requests can be declined");
         }
-        // Only allow decline if current user is the payer (owner of fromWallet)
         Long currentUserId = getCurrentUserId();
         if (!moneyRequest.getFromWalletID().getUser().getId().equals(currentUserId)) {
             throw new SecurityException("You are not authorized to decline this money request");
         }
         moneyRequest.setStatus("DECLINED");
-        moneyRequestRepository.save(moneyRequest);
-        return moneyRequestMapper.toMoneyRequestResponse(moneyRequest);
+        MoneyRequest updatedRequest = moneyRequestRepository.save(moneyRequest);
+        log.info("Money request {} declined by user {}", referenceNumber, currentUserId);
+        return moneyRequestMapper.toMoneyRequestResponse(updatedRequest);
     }
 
-    // Helper method to get the current authenticated user's ID from the Security Context.
     private Long getCurrentUserId() {
         UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return userDetails.getId();

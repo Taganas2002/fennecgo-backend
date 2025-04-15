@@ -9,9 +9,7 @@ public interface MoneyRequestService {
     MoneyRequestResponse getMoneyRequestById(Long id);
     List<MoneyRequestResponse> getRequestsForUser();
     List<MoneyRequestResponse> getRequestsForPayer();
-    void cancelMoneyRequest(Long requestId);
-    
-    // Payer actions:
-    MoneyRequestResponse confirmMoneyRequest(Long requestId);
-    MoneyRequestResponse declineMoneyRequest(Long requestId);
+	MoneyRequestResponse cancelMoneyRequest(String referenceNumber);
+	MoneyRequestResponse confirmMoneyRequest(String referenceNumber);
+	MoneyRequestResponse declineMoneyRequest(String referenceNumber);
 }
