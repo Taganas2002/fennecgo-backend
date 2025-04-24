@@ -2,50 +2,70 @@ package com.fennec.fennecgo.controllers;
 
 import com.fennec.fennecgo.dto.request.ServicePlanRequest;
 import com.fennec.fennecgo.dto.response.ServicePlanResponse;
+import com.fennec.fennecgo.dto.response.TransactionTypeResponse;
 import com.fennec.fennecgo.services.Interface.ServicePlanService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 
-/**
- * REST Controller for managing ServicePlan CRUD.
- */
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+
 @RestController
-@RequestMapping("/api/service-plans")
+@RequestMapping("/api")
+@RequiredArgsConstructor
 public class ServicePlanController {
+    private final ServicePlanService svc;
 
-    @Autowired
-    private ServicePlanService servicePlanService;
-
-    // CREATE
-    @PostMapping
-    public ServicePlanResponse create(@RequestBody ServicePlanRequest request) {
-        return servicePlanService.createServicePlan(request);
+    @GetMapping("/service-plans")
+    public Page<ServicePlanResponse> list(
+        @RequestParam(required = false) Long serviceProviderId,
+        @RequestParam(required = false) Long transactionTypeId,
+        @PageableDefault(size = 20) Pageable page
+    ) {
+        return svc.listServicePlans(serviceProviderId, transactionTypeId, page);
     }
 
-    // READ (All)
-    @GetMapping
-    public List<ServicePlanResponse> findAll() {
-        return servicePlanService.getAllServicePlans();
+    @GetMapping("/service-providers/{providerId}/plans")
+    public Page<ServicePlanResponse> listByProvider(
+        @PathVariable Long providerId,
+        @RequestParam(required = false) Long transactionTypeId,
+        @PageableDefault(size = 20) Pageable page
+    ) {
+        return svc.listServicePlans(providerId, transactionTypeId, page);
     }
 
-    // READ (One)
-    @GetMapping("/{id}")
-    public ServicePlanResponse findById(@PathVariable Long id) {
-        return servicePlanService.getServicePlanById(id);
+    @GetMapping("/service-plans/{id}")
+    public ServicePlanResponse getOne(@PathVariable Long id) {
+        return svc.getServicePlanById(id);
     }
 
-    // UPDATE
-    @PutMapping("/{id}")
-    public ServicePlanResponse update(@PathVariable Long id,
-                                      @RequestBody ServicePlanRequest request) {
-        return servicePlanService.updateServicePlan(id, request);
+    @PostMapping("/service-plans")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ServicePlanResponse create(@RequestBody ServicePlanRequest req) {
+        return svc.createServicePlan(req);
     }
 
-    // DELETE
-    @DeleteMapping("/{id}")
+    @PutMapping("/service-plans/{id}")
+    public ServicePlanResponse update(
+        @PathVariable Long id,
+        @RequestBody ServicePlanRequest req
+    ) {
+        return svc.updateServicePlan(id, req);
+    }
+
+    @DeleteMapping("/service-plans/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
-        servicePlanService.deleteServicePlan(id);
+        svc.deleteServicePlan(id);
+    }
+    @GetMapping("/service-providers/{providerId}/transaction-types")
+    public List<TransactionTypeResponse> getTxTypesByProvider(
+            @PathVariable Long providerId
+    ) {
+        return svc.listTransactionTypesByProvider(providerId);
     }
 }
