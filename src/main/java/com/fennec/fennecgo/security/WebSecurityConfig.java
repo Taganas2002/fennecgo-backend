@@ -61,6 +61,7 @@ public class WebSecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/test/**").permitAll()
+                .requestMatchers("/api/health/**").permitAll()
                 // Allow all GET requests to /uploads/**
                 .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
                 .anyRequest().authenticated()
