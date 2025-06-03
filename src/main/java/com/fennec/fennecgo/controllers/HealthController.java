@@ -27,7 +27,20 @@ public class HealthController {
     public ResponseEntity<String> health() {
         return ResponseEntity.ok("OK");
     }
-
+    
+    @GetMapping("h1")
+    public ResponseEntity<String> h1() {
+        return ResponseEntity.ok("OK");
+    }
+    @GetMapping("h2")
+    public ResponseEntity<String> h2() {
+        return ResponseEntity.ok("OK");
+    }
+    @GetMapping("h3")
+    public ResponseEntity<String> h3() {
+        return ResponseEntity.ok("OK");
+    }
+    
     @GetMapping("/version")
     public ResponseEntity<Map<String, String>> version() {
         return ResponseEntity.ok(Map.of(
