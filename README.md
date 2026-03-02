@@ -144,11 +144,23 @@ Agent App (Expo RN)
 
 ## Screenshots
 
-(Add screenshots here)
+### Login / Register / PIN
+![Login / Register / PIN](Login-Register-Pin.png)
 
-Suggested list:
-- Customer: Login, Wallet, Generate QR, Send Money, Favorites, History
-- Agent: Login, Scan QR, Enter Amount, Confirmation, History
+### Wallet Home
+![Wallet Home](Wallet_Home.png)
+
+### Top Up (QR)
+![Top Up QR](<Top_Up QR.png>)
+
+### Send Money (P2P)
+![Send Money P2P](SendMoneyP2P.png)
+
+### Request Money
+![Request Money](RequestMoney.png)
+
+### Profile / Settings
+![Profile / Settings](Profile_Settings.png)
 
 ---
 
